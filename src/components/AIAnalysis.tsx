@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 // Exercise analysis criteria
 const exerciseCriteria = {
@@ -81,8 +81,29 @@ const exerciseCriteria = {
   }
 };
 
+// Define keypoint type
+interface Keypoint {
+  x: number;
+  y: number;
+  score: number;
+  name?: string;
+}
+
+// Define keypoints object type
+interface KeypointsObject {
+  [key: string]: Keypoint;
+}
+
 interface AIAnalysisProps {
-  poseData: any;
+  poseData: {
+    keypoints: Array<{
+      name: string;
+      x: number;
+      y: number;
+      score: number;
+    }>;
+    score: number;
+  };
   selectedExercise: string;
   onFeedback: (feedback: string) => void;
 }
@@ -94,31 +115,8 @@ export default function AIAnalysis({
 }: AIAnalysisProps) {
   const [lastFeedbackTime, setLastFeedbackTime] = useState(0);
   
-  useEffect(() => {
-    if (!poseData || !selectedExercise) return;
-    
-    // Analyze pose data based on the selected exercise
-    analyzePose(poseData, selectedExercise);
-  }, [poseData, selectedExercise]);
-
-  // Calculate angle between three points
-  const calculateAngle = (a: any, b: any, c: any) => {
-    if (!a || !b || !c) return 0;
-    
-    const ab = Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
-    const bc = Math.sqrt(Math.pow(b.x - c.x, 2) + Math.pow(b.y - c.y, 2));
-    const ac = Math.sqrt(Math.pow(c.x - a.x, 2) + Math.pow(c.y - a.y, 2));
-    
-    return Math.acos((ab * ab + bc * bc - ac * ac) / (2 * ab * bc)) * (180 / Math.PI);
-  };
-
-  // Calculate distance between two points
-  const calculateDistance = (a: any, b: any) => {
-    if (!a || !b) return 0;
-    return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
-  };
-
-  const analyzePose = (pose: any, exercise: string) => {
+  // Define analyzePose as useCallback to include it in dependencies
+  const analyzePose = useCallback((pose: typeof poseData, exercise: string) => {
     // Don't give feedback too frequently
     const now = Date.now();
     if (now - lastFeedbackTime < 2000) return; // 2-second throttle
@@ -127,8 +125,8 @@ export default function AIAnalysis({
     if (!keypoints || keypoints.length === 0) return;
     
     // Convert keypoints array to object for easier access
-    const keypointsObj: {[key: string]: any} = {};
-    keypoints.forEach((kp: any) => {
+    const keypointsObj: KeypointsObject = {};
+    keypoints.forEach((kp) => {
       keypointsObj[kp.name] = {
         x: kp.x,
         y: kp.y,
@@ -162,10 +160,34 @@ export default function AIAnalysis({
       onFeedback(feedback);
       setLastFeedbackTime(now);
     }
+  }, [lastFeedbackTime, onFeedback]);
+  
+  useEffect(() => {
+    if (!poseData || !selectedExercise) return;
+    
+    // Analyze pose data based on the selected exercise
+    analyzePose(poseData, selectedExercise);
+  }, [poseData, selectedExercise, analyzePose]);
+
+  // Calculate angle between three points
+  const calculateAngle = (a: Keypoint, b: Keypoint, c: Keypoint) => {
+    if (!a || !b || !c) return 0;
+    
+    const ab = Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+    const bc = Math.sqrt(Math.pow(b.x - c.x, 2) + Math.pow(b.y - c.y, 2));
+    const ac = Math.sqrt(Math.pow(c.x - a.x, 2) + Math.pow(c.y - a.y, 2));
+    
+    return Math.acos((ab * ab + bc * bc - ac * ac) / (2 * ab * bc)) * (180 / Math.PI);
+  };
+
+  // Calculate distance between two points
+  const calculateDistance = (a: any, b: any) => {
+    if (!a || !b) return 0;
+    return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
   };
 
   // Exercise-specific analysis functions
-  const analyzeSquat = (keypoints: any) => {
+  const analyzeSquat = (keypoints: KeypointsObject) => {
     // Get relevant keypoints
     const leftHip = keypoints['left_hip'];
     const leftKnee = keypoints['left_knee'];
@@ -173,8 +195,9 @@ export default function AIAnalysis({
     const rightHip = keypoints['right_hip'];
     const rightKnee = keypoints['right_knee'];
     const rightAnkle = keypoints['right_ankle'];
-    const leftShoulder = keypoints['left_shoulder'];
-    const rightShoulder = keypoints['right_shoulder'];
+    // These variables are used in more complex implementations
+    const _leftShoulder = keypoints['left_shoulder'];
+    const _rightShoulder = keypoints['right_shoulder'];
     
     if (!leftHip || !leftKnee || !leftAnkle || !rightHip || !rightKnee || !rightAnkle) {
       return "Make sure your full body is visible in the camera";
@@ -202,7 +225,7 @@ export default function AIAnalysis({
     return "Good form! Keep it up.";
   };
 
-  const analyzePushup = (keypoints: any) => {
+  const analyzePushup = (keypoints: KeypointsObject) => {
     // Get relevant keypoints
     const leftShoulder = keypoints['left_shoulder'];
     const leftElbow = keypoints['left_elbow'];
@@ -231,7 +254,7 @@ export default function AIAnalysis({
     return "Good push-up form! Continue your reps.";
   };
 
-  const analyzeLunge = (keypoints: any) => {
+  const analyzeLunge = (keypoints: KeypointsObject) => {
     // Check if keypoints are detected
     const hasKeypoints = keypoints['left_knee'] && keypoints['right_knee'] && 
                         keypoints['left_ankle'] && keypoints['right_ankle'];
@@ -244,7 +267,7 @@ export default function AIAnalysis({
     return "Keep your front knee aligned with your ankle. Maintain an upright posture.";
   };
 
-  const analyzePlank = (keypoints: any) => {
+  const analyzePlank = (keypoints: KeypointsObject) => {
     // Check if keypoints are detected
     const hasKeypoints = keypoints['left_shoulder'] && keypoints['right_shoulder'] &&
                         keypoints['left_hip'] && keypoints['right_hip'] &&
@@ -255,21 +278,21 @@ export default function AIAnalysis({
     }
     
     // Simplified implementation
-    return "Keep your body in a straight line from head to heels. Engage your core.";
+    return "Keep your body in a straight line from head to heels. Engage your core muscles.";
   };
 
-  const analyzeBicepCurl = (keypoints: any) => {
+  const analyzeBicepCurl = (keypoints: KeypointsObject) => {
     // Check if keypoints are detected
-    const hasKeypoints = keypoints['left_shoulder'] && keypoints['left_elbow'] && 
-                        keypoints['left_wrist'] && keypoints['right_shoulder'] && 
-                        keypoints['right_elbow'] && keypoints['right_wrist'];
+    const hasKeypoints = keypoints['left_shoulder'] && keypoints['right_shoulder'] &&
+                        keypoints['left_elbow'] && keypoints['right_elbow'] &&
+                        keypoints['left_wrist'] && keypoints['right_wrist'];
                         
     if (!hasKeypoints) {
       return "Make sure your arms are visible in the camera";
     }
     
     // Simplified implementation
-    return "Keep your elbows stable and close to your body. Fully extend and contract your arms.";
+    return "Keep your elbows close to your body. Focus on controlled movements.";
   };
 
   // This component doesn't render anything visible

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as tf from '@tensorflow/tfjs';
 
 // Simplified mock version for when TensorFlow.js is not fully loaded
 const mockDetector = {
-  estimatePoses: async (video: HTMLVideoElement) => {
+  estimatePoses: async () => {
     console.log('Using mock detector for pose estimation');
     // Create sample pose data with minimal keypoints
     return [{
@@ -45,6 +45,64 @@ export default function PoseDetection({
   const [detector, setDetector] = useState<any>(null);
   const detectionIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isSimulationMode, setIsSimulationMode] = useState(true);
+
+  // Define startPoseDetection as useCallback to include it in dependencies
+  const startPoseDetection = useCallback(() => {
+    if (detectionIntervalRef.current) {
+      clearInterval(detectionIntervalRef.current);
+    }
+
+    // For simulation mode, we'll use a longer interval to make it more realistic
+    const intervalTime = isSimulationMode ? 1000 : 100;
+    console.log(`Setting detection interval to ${intervalTime}ms (simulation: ${isSimulationMode})`);
+
+    // Run pose detection at regular intervals
+    detectionIntervalRef.current = setInterval(async () => {
+      if (
+        detector && 
+        webcamRef.current && 
+        webcamRef.current.video && 
+        webcamRef.current.video.readyState === 4
+      ) {
+        try {
+          // Get video properties
+          const video = webcamRef.current.video;
+          
+          // Detect poses
+          console.log('Detecting poses...');
+          const poses = await detector.estimatePoses(video);
+          console.log('Poses detected:', poses.length > 0 ? 'Yes' : 'No');
+          
+          if (poses && poses.length > 0) {
+            // Pass the detected pose to the parent component
+            onPoseDetected(poses[0]);
+          }
+        } catch (error) {
+          console.error('Error detecting pose:', error);
+          
+          // If in simulation mode, still provide feedback
+          if (isSimulationMode) {
+            console.log('Using mock detection due to error');
+            try {
+              const poses = await mockDetector.estimatePoses();
+              if (poses && poses.length > 0) {
+                onPoseDetected(poses[0]);
+              }
+            } catch (e) {
+              console.error('Error with mock detection:', e);
+            }
+          }
+        }
+      } else {
+        console.log('Webcam not ready for pose detection', {
+          hasDetector: !!detector,
+          hasWebcam: !!webcamRef.current,
+          hasVideo: !!(webcamRef.current && webcamRef.current.video),
+          readyState: webcamRef.current && webcamRef.current.video ? webcamRef.current.video.readyState : 'N/A'
+        });
+      }
+    }, intervalTime);
+  }, [detector, isSimulationMode, onPoseDetected, webcamRef]);
 
   // Load the TensorFlow.js and MoveNet model (or use simulation)
   useEffect(() => {
@@ -143,64 +201,7 @@ export default function PoseDetection({
         detectionIntervalRef.current = null;
       }
     };
-  }, [isStarted, detector, webcamRef, selectedExercise]);
-
-  const startPoseDetection = () => {
-    if (detectionIntervalRef.current) {
-      clearInterval(detectionIntervalRef.current);
-    }
-
-    // For simulation mode, we'll use a longer interval to make it more realistic
-    const intervalTime = isSimulationMode ? 1000 : 100;
-    console.log(`Setting detection interval to ${intervalTime}ms (simulation: ${isSimulationMode})`);
-
-    // Run pose detection at regular intervals
-    detectionIntervalRef.current = setInterval(async () => {
-      if (
-        detector && 
-        webcamRef.current && 
-        webcamRef.current.video && 
-        webcamRef.current.video.readyState === 4
-      ) {
-        try {
-          // Get video properties
-          const video = webcamRef.current.video;
-          
-          // Detect poses
-          console.log('Detecting poses...');
-          const poses = await detector.estimatePoses(video);
-          console.log('Poses detected:', poses.length > 0 ? 'Yes' : 'No');
-          
-          if (poses && poses.length > 0) {
-            // Pass the detected pose to the parent component
-            onPoseDetected(poses[0]);
-          }
-        } catch (error) {
-          console.error('Error detecting pose:', error);
-          
-          // If in simulation mode, still provide feedback
-          if (isSimulationMode) {
-            console.log('Using mock detection due to error');
-            try {
-              const poses = await mockDetector.estimatePoses(webcamRef.current.video);
-              if (poses && poses.length > 0) {
-                onPoseDetected(poses[0]);
-              }
-            } catch (e) {
-              console.error('Error with mock detection:', e);
-            }
-          }
-        }
-      } else {
-        console.log('Webcam not ready for pose detection', {
-          hasDetector: !!detector,
-          hasWebcam: !!webcamRef.current,
-          hasVideo: !!(webcamRef.current && webcamRef.current.video),
-          readyState: webcamRef.current && webcamRef.current.video ? webcamRef.current.video.readyState : 'N/A'
-        });
-      }
-    }, intervalTime);
-  };
+  }, [isStarted, detector, webcamRef, selectedExercise, startPoseDetection]);
 
   // This component doesn't render anything visible
   return null;

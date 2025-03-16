@@ -21,7 +21,6 @@ export default function WorkoutPage() {
   const webcamRef = useRef(null);
   const [isModelLoaded, setIsModelLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [pose, setPose] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [cameraPermission, setCameraPermission] = useState(false);
   const [debugInfo, setDebugInfo] = useState('');
@@ -123,7 +122,6 @@ export default function WorkoutPage() {
   // Handle pose detection results
   const handlePoseDetected = (poseData) => {
     console.log('Pose detected', { keypoints: poseData.keypoints.length });
-    setPose(poseData);
     
     // Get AI feedback on the pose
     try {

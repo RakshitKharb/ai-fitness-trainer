@@ -1,8 +1,34 @@
 import axios from 'axios';
 
+// Define types
+interface Keypoint {
+  name: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  confidence: number;
+}
+
+interface PoseData {
+  keypoints: Array<{
+    name: string;
+    x: number;
+    y: number;
+    score: number;
+  }>;
+  score: number;
+}
+
+interface FormattedPoseData {
+  exerciseType: string;
+  keypoints: Keypoint[];
+  timestamp: string;
+}
+
 // Gemini API service for advanced exercise analysis
 export const analyzeExerciseWithGemini = async (
-  poseData: any,
+  poseData: PoseData,
   exerciseType: string
 ): Promise<string> => {
   try {
@@ -59,7 +85,7 @@ export const analyzeExerciseWithGemini = async (
 };
 
 // Helper to format pose data in a way that's useful for Gemini
-const formatPoseDataForGemini = (poseData: any, exerciseType: string) => {
+const formatPoseDataForGemini = (poseData: PoseData, exerciseType: string): FormattedPoseData => {
   // Extract relevant keypoints and angles based on exercise type
   const keypoints = poseData.keypoints;
   
@@ -70,7 +96,7 @@ const formatPoseDataForGemini = (poseData: any, exerciseType: string) => {
   // Return formatted data object
   return {
     exerciseType,
-    keypoints: keypoints.map((kp: any) => ({
+    keypoints: keypoints.map((kp) => ({
       name: kp.name,
       position: { x: kp.x, y: kp.y },
       confidence: kp.score
@@ -83,7 +109,7 @@ const formatPoseDataForGemini = (poseData: any, exerciseType: string) => {
 export const simulateGeminiAnalysis = (
   exerciseType: string
 ): string => {
-  const feedbackOptions = {
+  const feedbackOptions: {[key: string]: string[]} = {
     squat: [
       "Keep your knees aligned with your toes and go deeper in your squat. Try to reach parallel with the ground for maximum benefit.",
       "Great depth on your squat, but watch your lower back position. Keep your core engaged to maintain a neutral spine.",
