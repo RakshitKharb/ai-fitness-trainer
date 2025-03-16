@@ -11,15 +11,6 @@ const nextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/workout',
-        permanent: true,
-      },
-    ];
-  },
 };
 
 module.exports = nextConfig; 
