@@ -174,25 +174,25 @@ export default function WorkoutPage() {
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
-          <Link href="/" className="flex items-center text-blue-600 hover:text-blue-800">
+          <Link href="/" className="flex items-center text-blue-600 hover:text-blue-800 transition">
             <FaHome className="mr-2" /> Back to Home
           </Link>
           
-          <h1 className="text-2xl md:text-3xl font-bold text-center text-gray-800">
+          <h1 className="text-2xl md:text-3xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
             AI Fitness Trainer
           </h1>
           
           <div className="flex items-center space-x-3">
             <button 
               onClick={toggleMute} 
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200"
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition"
               aria-label={isMuted ? "Unmute" : "Mute"}
             >
               {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
             </button>
             <button
               onClick={() => setShowSuggestions(!showSuggestions)}
-              className="p-2 rounded-full bg-purple-100 hover:bg-purple-200"
+              className="p-2 rounded-full bg-purple-100 hover:bg-purple-200 transition"
               aria-label="Show workout suggestions"
             >
               <FaDumbbell />
@@ -200,65 +200,35 @@ export default function WorkoutPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Exercise Selection */}
-          <div className="bg-white p-6 rounded-xl shadow-md">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">Select Exercise</h2>
-            <div className="space-y-2">
-              {exercises.map((exercise) => (
-                <button
-                  key={exercise.id}
-                  onClick={() => setSelectedExercise(exercise.id)}
-                  className={`w-full p-3 rounded-lg transition ${
-                    selectedExercise === exercise.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
-                >
-                  {exercise.name}
-                </button>
-              ))}
-            </div>
-            
-            {showSuggestions && (
-              <div className="mt-6 p-4 bg-purple-50 rounded-lg">
-                <h3 className="font-semibold text-lg mb-2">Workout Suggestion</h3>
-                <p className="text-sm text-gray-700 mb-3">
-                  Based on your progress, try this workout routine:
-                </p>
-                <div className="space-y-2">
-                  <div className="bg-white p-2 rounded shadow-sm">
-                    <p className="font-medium">3 sets of {getExerciseName(selectedExercise || 'squat')}</p>
-                    <p className="text-xs text-gray-600">12-15 reps, 60 sec rest</p>
-                  </div>
-                  <div className="bg-white p-2 rounded shadow-sm">
-                    <p className="font-medium">2 sets of Planks</p>
-                    <p className="text-xs text-gray-600">30 sec hold, 30 sec rest</p>
-                  </div>
-                  <div className="bg-white p-2 rounded shadow-sm">
-                    <p className="font-medium">3 sets of Lunges</p>
-                    <p className="text-xs text-gray-600">10 reps each leg, 45 sec rest</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Debug Info */}
-            {debugInfo && (
-              <div className="mt-6 p-4 bg-red-50 rounded-lg">
-                <h3 className="font-semibold text-lg mb-2">Debug Information</h3>
-                <p className="text-sm text-red-700">{debugInfo}</p>
-              </div>
-            )}
+        {/* Exercise Selection */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4 text-gray-800">Select Exercise</h2>
+          <div className="flex flex-wrap gap-2">
+            {exercises.map((exercise) => (
+              <button
+                key={exercise.id}
+                onClick={() => setSelectedExercise(exercise.id)}
+                className={`px-4 py-2 rounded-full transition transform hover:scale-105 ${
+                  selectedExercise === exercise.id
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                }`}
+              >
+                {exercise.name}
+              </button>
+            ))}
           </div>
+        </div>
 
-          {/* Camera/Video Feed */}
+        {/* Workout Area */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Video Feed */}
           <div className="lg:col-span-2">
             <div className="bg-black rounded-xl overflow-hidden aspect-video relative">
               {isLoading ? (
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                   <div className="text-white text-center">
-                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em]"></div>
                     <p className="mt-4">Loading AI Fitness Trainer...</p>
                   </div>
                 </div>
@@ -272,11 +242,6 @@ export default function WorkoutPage() {
                         className="w-full h-full object-cover"
                         audio={false}
                         screenshotFormat="image/jpeg"
-                        onUserMedia={() => console.log('Webcam stream started')}
-                        onUserMediaError={(err) => {
-                          console.error('Webcam error:', err);
-                          setDebugInfo(`Webcam error: ${err.name} - ${err.message}`);
-                        }}
                       />
                       {typeof window !== 'undefined' && (
                         <PoseDetection
@@ -288,58 +253,48 @@ export default function WorkoutPage() {
                       )}
                     </>
                   )}
-                  {!isStarted && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                      <div className="text-center text-white p-6">
-                        <h3 className="text-xl font-semibold mb-3">Ready to Start Your Workout</h3>
-                        <p className="mb-4">
-                          {selectedExercise 
-                            ? `Selected: ${getExerciseName(selectedExercise)}` 
-                            : "Please select an exercise from the list"}
-                        </p>
-                        <button
-                          onClick={startWorkout}
-                          disabled={!isModelLoaded || !selectedExercise}
-                          className={`mx-auto flex items-center justify-center p-4 rounded-full 
-                            ${(!isModelLoaded || !selectedExercise) 
-                              ? 'bg-gray-500 cursor-not-allowed' 
-                              : 'bg-green-600 hover:bg-green-700'}`}
-                        >
-                          <FaPlay className="text-white" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </>
               )}
             </div>
 
-            {/* Control Bar */}
-            <div className="bg-white p-4 rounded-xl shadow-md mt-4 flex justify-between items-center">
-              {isStarted ? (
+            {/* Controls */}
+            <div className="mt-4 flex justify-center">
+              {!isStarted ? (
                 <button
-                  onClick={stopWorkout}
-                  className="flex items-center justify-center p-2 rounded-full bg-red-600 hover:bg-red-700 text-white"
+                  onClick={startWorkout}
+                  disabled={!selectedExercise || !cameraPermission}
+                  className={`flex items-center px-6 py-3 rounded-full transition transform hover:scale-105 ${
+                    !selectedExercise || !cameraPermission
+                      ? 'bg-gray-300 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg'
+                  }`}
                 >
-                  <FaPause />
+                  <FaPlay className="mr-2" /> Start Workout
                 </button>
               ) : (
                 <button
-                  onClick={startWorkout}
-                  disabled={!isModelLoaded || !selectedExercise}
-                  className={`flex items-center justify-center p-2 rounded-full 
-                    ${(!isModelLoaded || !selectedExercise) 
-                      ? 'bg-gray-500 cursor-not-allowed' 
-                      : 'bg-green-600 hover:bg-green-700'} text-white`}
+                  onClick={stopWorkout}
+                  className="flex items-center px-6 py-3 rounded-full bg-red-500 text-white transition transform hover:scale-105 hover:shadow-lg"
                 >
-                  <FaPlay />
+                  <FaPause className="mr-2" /> Stop
                 </button>
               )}
-
-              <div className="text-center flex-1 px-4">
-                <p className="text-gray-700">{feedback}</p>
-              </div>
             </div>
+          </div>
+
+          {/* Feedback Panel */}
+          <div className="bg-white rounded-xl p-6 shadow-lg">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              {isStarted ? 'Real-time Feedback' : 'Ready to Start Your Workout'}
+            </h2>
+            <p className="text-gray-600">
+              {feedback || 'Please select an exercise from the list'}
+            </p>
+            {debugInfo && (
+              <div className="mt-4 p-4 bg-gray-100 rounded-lg">
+                <pre className="text-sm text-gray-600">{debugInfo}</pre>
+              </div>
+            )}
           </div>
         </div>
       </div>
