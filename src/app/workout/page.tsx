@@ -110,6 +110,11 @@ export default function WorkoutPage() {
     console.log('Stopping workout');
     setIsStarted(false);
     setFeedback('Workout paused. Press play to continue.');
+    // Clear any existing feedback
+    if (window.feedbackInterval) {
+      clearInterval(window.feedbackInterval);
+      window.feedbackInterval = null;
+    }
   };
 
   const toggleMute = () => {
@@ -127,7 +132,7 @@ export default function WorkoutPage() {
     
     // Get AI feedback on the pose
     try {
-      const aiAnalysis = simulateGeminiAnalysis(selectedExercise);
+      const aiAnalysis = simulateGeminiAnalysis(selectedExercise, poseData);
       setFeedback(aiAnalysis);
       
       // Provide audio feedback if not muted
@@ -142,13 +147,23 @@ export default function WorkoutPage() {
 
   // For demonstration purposes, simulate feedback if real pose detection isn't working
   useEffect(() => {
-    let feedbackInterval;
-    
     if (isStarted && selectedExercise) {
       console.log('Setting up feedback simulation interval');
-      feedbackInterval = setInterval(() => {
+      // Store interval globally to ensure we can clear it
+      window.feedbackInterval = setInterval(() => {
         try {
-          const aiAnalysis = simulateGeminiAnalysis(selectedExercise);
+          // Create mock pose data with random values
+          const mockPoseData = {
+            keypoints: Array(17).fill(0).map((_, i) => ({
+              name: `keypoint_${i}`,
+              x: Math.random() * 100,
+              y: Math.random() * 100,
+              score: 0.7 + (Math.random() * 0.3) // Random confidence between 0.7 and 1.0
+            })),
+            score: 0.8 + (Math.random() * 0.2) // Random overall score between 0.8 and 1.0
+          };
+          
+          const aiAnalysis = simulateGeminiAnalysis(selectedExercise, mockPoseData);
           setFeedback(aiAnalysis);
           
           if (!isMuted) {
@@ -159,12 +174,20 @@ export default function WorkoutPage() {
           setDebugInfo(`Feedback interval error: ${error.message}`);
         }
       }, 5000); // Provide feedback every 5 seconds
+    } else {
+      // Clear interval when workout is not started
+      if (window.feedbackInterval) {
+        console.log('Clearing feedback interval on state change');
+        clearInterval(window.feedbackInterval);
+        window.feedbackInterval = null;
+      }
     }
     
     return () => {
-      if (feedbackInterval) {
-        console.log('Clearing feedback interval');
-        clearInterval(feedbackInterval);
+      if (window.feedbackInterval) {
+        console.log('Clearing feedback interval on unmount');
+        clearInterval(window.feedbackInterval);
+        window.feedbackInterval = null;
       }
     };
   }, [isStarted, selectedExercise, isMuted]);
