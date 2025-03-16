@@ -111,37 +111,37 @@ export const simulateGeminiAnalysis = (
 ): string => {
   const feedbackOptions: {[key: string]: string[]} = {
     squat: [
-      "Keep your knees aligned with your toes and go deeper in your squat. Try to reach parallel with the ground for maximum benefit.",
-      "Great depth on your squat, but watch your lower back position. Keep your core engaged to maintain a neutral spine.",
-      "Your weight is shifting forward too much. Focus on keeping weight in your heels and maintaining an upright chest position."
+      "Bend your knees to 90 degrees, keeping your back straight and core tight. Weight should be in your heels.",
+      "Keep your knees aligned with your toes - don't let them collapse inward. Chest up, shoulders back.",
+      "Lower your hips until your thighs are parallel to the ground. Keep your heels planted firmly."
     ],
     pushup: [
-      "Lower your body more to get the full range of motion. Aim to bring your chest close to the floor while keeping your core tight.",
-      "Your elbows are flaring out too wide. Keep them at about a 45-degree angle to your body to protect your shoulders.",
-      "Great form! Maintain that straight line from head to heels and continue with controlled movements."
+      "Keep your body in a straight line from head to heels. Lower until your elbows are at 90 degrees.",
+      "Position your hands slightly wider than shoulder-width. Keep your elbows at about 45 degrees from your body.",
+      "Engage your core throughout the movement. Don't let your hips sag or pike up."
     ],
     lunge: [
-      "Step forward a bit more to create proper knee alignment. Your front knee should be directly above your ankle.",
-      "Try to lower your back knee closer to the ground while keeping your torso upright for a deeper stretch.",
-      "Watch your front knee - it's moving inward. Focus on pushing it slightly outward in line with your middle toe."
+      "Step forward with alignment - front knee directly above ankle, back knee lowered toward the floor.",
+      "Keep your torso upright and core engaged throughout the movement. Don't lean forward.",
+      "Push through your front heel to return to starting position. Keep your movements controlled."
     ],
     plank: [
-      "Your hips are sagging down. Engage your core and glutes to maintain a straight line from head to heels.",
-      "Looking good! Remember to breathe normally and keep your gaze down to maintain neutral neck alignment.",
-      "Your shoulders are shrugging toward your ears. Relax them down and back while keeping your core engaged."
+      "Maintain a straight line from head to heels. Engage your core, glutes, and quads.",
+      "Position your elbows directly beneath your shoulders. Keep your neck in a neutral position.",
+      "Don't let your hips sag toward the floor or pike up toward the ceiling. Breathe normally."
     ],
     'bicep-curl': [
-      "You're using momentum from your back. Slow down the movement and focus on isolating the biceps muscle.",
-      "Great control! Try to fully extend your arms at the bottom of the movement for full range of motion.",
-      "Keep your elbows fixed at your sides throughout the entire movement to maximize bicep engagement."
+      "Keep your elbows fixed at your sides throughout the movement. Use only your forearms to lift.",
+      "Control the movement in both directions - don't swing or use momentum to lift the weight.",
+      "Fully extend your arms at the bottom and fully contract your biceps at the top of each rep."
     ]
   };
   
   // Get feedback options for the selected exercise, or generic feedback if not found
   const options = feedbackOptions[exerciseType] || [
-    "Focus on proper form rather than speed. Slow, controlled movements are more effective.",
-    "Remember to breathe steadily throughout the exercise. Don't hold your breath.",
-    "Great effort! Make sure to maintain proper form as you start to fatigue."
+    "Focus on maintaining proper form throughout the exercise. Quality over quantity.",
+    "Remember to breathe steadily - exhale during exertion and inhale during the easier phase.",
+    "Keep your movements controlled and deliberate. Don't rush through repetitions."
   ];
   
   // Return a random feedback message from the available options
