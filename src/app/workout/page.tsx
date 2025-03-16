@@ -8,10 +8,12 @@ import { simulateGeminiAnalysis } from '@/services/geminiService';
 import { simulateSpeech } from '@/services/audioService';
 
 // Import dynamically to avoid SSR issues with browser APIs
-const Webcam = dynamic(() => import('react-webcam').then(mod => mod.default), { ssr: false });
+// @ts-expect-error - TypeScript struggles with the Webcam component types
+const Webcam = dynamic(() => import('react-webcam'), { ssr: false });
 
 // Lazy load PoseDetection component to avoid issues with TensorFlow.js during SSR
-const PoseDetection = dynamic(() => import('@/components/PoseDetection').then(mod => mod.default), { ssr: false });
+// @ts-expect-error - TypeScript struggles with dynamic imports
+const PoseDetection = dynamic(() => import('@/components/PoseDetection'), { ssr: false });
 
 export default function WorkoutPage() {
   const [isStarted, setIsStarted] = useState(false);
